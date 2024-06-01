@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Music Player</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        #card {
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            width: 300px;
+            text-align: center;
+            padding: 20px;
+        }
+
+        #album {
+            width: 100%;
+            border-radius: 10px;
+        }
+
+        footer {
+            margin-top: 20px;
+        }
+
+        .up, .down {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .details {
+            flex-grow: 1;
+            text-align: left;
+            margin-left: 10px;
+        }
+
+        .details b {
+            display: block;
+            font-size: 16px;
+        }
+
+        .details span {
+            font-size: 12px;
+            color: #666;
+        }
+
+        .like {
+            background: none;
+            border: none;
+            color: #ff0000;
+            cursor: pointer;
+            font-size: 20px;
+        }
+
+        #track {
+            width: 100%;
+            margin: 10px 0;
+        }
+
+        .down button {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 20px;
+        }
+
+        .down button:hover {
+            color: #007BFF;
+        }
+
+        #loader {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            justify-content: center;
+            align-items: center;
+            color: white;
+            font-size: 30px;
+        }
+    </style>
+</head>
+<body>
+
+<section id="loader">Loading...</section>
+<section id="card">
+    <div id="body">
+        <img src="https://upload.wikimedia.org/wikipedia/en/f/f7/All_We_Know_%28featuring_Phoebe_Ryan%29_%28Official_Single_Cover%29_by_The_Chainsmokers.png" id="album" alt="album">
+    </div>
+    <footer>
+        <div class="up">
+            <div class="details">
+                <b id="song">All We Know</b>
+                <span id="singer">The Chainsmokers, Phoebe Ryan</span>
+            </div>
+            <button class="fas fa-heart like"></button>
+        </div>
+        <input id="track" type="range" value="0">
+        <div class="down">
+            <button class="fas fa-backward" id="prev"></button>
+            <button class="fas fa-play" id="pp"></button>
+            <button class="fas fa-forward" id="next"></button>
+        </div>
+    </footer>
+</section>
+<script>
+
+    // JavaScript 
+    
+    const qs = q => document.querySelector(q),
+          ac = a => a.currentTime,
+          dur = a => a.duration;
+          
+          
+    let track = qs("#track");
+    let pp = qs("#pp"), next = qs("#next"), prev = qs("#prev");
+    let singer = qs("#singer"), name = qs("#song");
+    let album = qs("#album");
+    let playing = false, r, cp, ind = -1,aud;
+    
+    const names = ["Something Just Like This","All We Know","Lost In Japan","Sakhiyaan","Besabriyaan"];
+    const singers = ["The Chainsmokers & Coldplay","The Chainsmokers, Phoebe Ryan","Shawn Mendes","Maninder Buttar","Armaan Malik"];
+    const songs = ["https://dl.dropbox.com/scl/fi/h8668ga02lkhk5u9aw42e/Something-Just-Like-This.mp3?rlkey=2l08nzcfwrijqihvwqupuzlsq","https://dl.dropbox.com/scl/fi/z3pop3d08qmq5ohe95sf8/All-We-Know.mp3?rlkey=osgbew749gvzpb7zbgfa1crro","https://dl.dropbox.com/s/y3nml3nfkf11mvh/Lost%20In%20Japan.mp3","https://dl.dropbox.com/s/krg0ts1v4cr5avv/Sakhiyaan.mp3","https://dl.dropbox.com/scl/fi/f7xudm9di7s3i41jl2fkz/Besabriyaan-MS-Dhoni-The-Untold-Story.mp3?rlkey=3iddr8pq43la70f31hudutsbr"];
+    const albums = ["https://upload.wikimedia.org/wikipedia/en/5/57/Something_Just_Like_This.png","https://upload.wikimedia.org/wikipedia/en/f/f7/All_We_Know_%28featuring_Phoebe_Ryan%29_%28Official_Single_Cover%29_by_The_Chainsmokers.png","https://dl.dropbox.com/s/bgbuxmp8l0m3d60/Lost%20in%20Japan.jpg","https://dl.dropbox.com/s/fd8zq58ysqnqx0n/Sakhiyaan.jpg","https://upload.wikimedia.org/wikipedia/en/e/e3/M.S.Dhoni%E2%80%93_The_Untold_Story_Album.jpeg"]
+    
+    
+    // Song Play function
+    // Play/pause handler
+    pp.addEventListener("click",()=>{
+        if(!playing){
+            cp = () => {
+                aud.play();
+                runTrack();
+                playing = true;
+            }
+            aud.oncanplay = cp();
+            pp.className = "fas fa-pause";
+        }
+        else{
+            aud.pause();
+            stopTrack();
+            playing = false;
+            pp.className = "fas fa-play";
+        }
+    })
+    
+    // Track Controls
+    function runTrack(){
+        r = setInterval(()=>{
+            let v = (ac(aud)/dur(aud))*100;
+            track.value = v;
+        },100)
+    }
+    function stopTrack(){
+        clearInterval(r);
+    }
+    
+    // Track Change Handler
+    track.addEventListener("input",()=>{
+        aud.currentTime = Math.floor((track.value/100)*dur(aud));
+    })
+    
+    // Next/Previous Handler
+    next.addEventListener("click", ()=>changeSong(1));
+    prev.addEventListener("click", ()=>changeSong(-1));
+    
+    function changeSong(x){
+        loader.style.display = "grid";
+        if(playing){
+            pp.click();
+        }
+        ind += x;
+        if(ind >= songs.length) ind = 0;
+        else if(ind < 0) ind = songs.length-1;
+        track.value = 0;
+        album.src = albums[ind];
+        aud = new Audio(songs[ind]);
+        song.innerText = names[ind];
+        singer.innerText = singers[ind];
+        aud.oncanplay = () => loader.style.display = "none";
+    }
+    changeSong(1);
+    
+    // Loader 
+    aud.oncanplay = () =>{
+        loader.style.display="none";
+    }
+    
+    
+    
+    </script>
+           
+</body>
+</html>
